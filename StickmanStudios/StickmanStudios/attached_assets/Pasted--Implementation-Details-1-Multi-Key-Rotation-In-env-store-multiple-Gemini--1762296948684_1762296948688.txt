@@ -1,0 +1,162 @@
+
+
+---
+
+### 🔧 Implementation Details
+
+#### 1. Multi-Key Rotation
+- In `.env`, store multiple Gemini keys:
+
+GEMINI_API_KEYS=key1,key2,key3,key4
+
+- Parse and rotate keys per paragraph:
+```typescript
+const keys = process.env.GEMINI_API_KEYS!.split(",");
+let currentKeyIndex = 0;
+
+function getNextKey() {
+  const key = keys[currentKeyIndex];
+  currentKeyIndex = (currentKeyIndex + 1) % keys.length;
+  return key;
+}
+
+Before each paragraph generation, call:
+
+const apiKey = getNextKey();
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-pro-vision" });
+
+
+
+---
+
+2. Bulk Image Generation (4-Panel Style)
+
+Each paragraph in the script is treated as a batch of sentences.
+
+Join all sentences in that paragraph into a single prompt like:
+
+const paragraphPrompt = `
+Create a single high-quality stickman comic strip with 4 panels.
+Each panel should visualize the following 4 sentences in order:
+1. ${sentences[0]}
+2. ${sentences[1]}
+3. ${sentences[2]}
+4. ${sentences[3]}
+Style: thin black outlines, white background, subtle color accents, educational infographic style.
+Label panels clearly with subtle text like "1", "2", "3", "4" but no long captions.
+`;
+
+After generation, save the combined image as temp_video/paragraph_[i].png.
+
+
+
+---
+
+3. Split the 4-Panel Image into 4 Frames
+
+Use Sharp for image splitting:
+
+npm install sharp
+
+Then add:
+
+import sharp from "sharp";
+
+async function splitIntoPanels(imagePath, paragraphIndex) {
+  const image = sharp(imagePath);
+  const metadata = await image.metadata();
+  const panelWidth = Math.floor(metadata.width / 4);
+
+  for (let i = 0; i < 4; i++) {
+    await image
+      .extract({ left: i * panelWidth, top: 0, width: panelWidth, height: metadata.height })
+      .toFile(`temp_video/frame_${paragraphIndex * 4 + i}.png`);
+  }
+}
+
+Call splitIntoPanels() right after saving the 4-panel image.
+
+
+
+---
+
+4. Add Staggered Request Timing (Adaptive Backoff)
+
+Implement an adaptive delay to space out API calls:
+
+async function staggerRequest(delayMs = 3000) {
+  const randomExtra = Math.floor(Math.random() * 1500); // add some jitter
+  return new Promise((resolve) => setTimeout(resolve, delayMs + randomExtra));
+}
+
+async function safeGenerateImage(paragraphPrompt, paragraphIndex) {
+  try {
+    await staggerRequest();
+    const apiKey = getNextKey();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-pro-vision" });
+    const result = await model.generateImage(paragraphPrompt);
+    const buffer = Buffer.from(result.data, "base64");
+    const filePath = `temp_video/paragraph_${paragraphIndex}.png`;
+    fs.writeFileSync(filePath, buffer);
+    await splitIntoPanels(filePath, paragraphIndex);
+  } catch (error) {
+    console.error("Gemini generation failed:", error.message);
+    if (error.message.includes("quota") || error.code === 429) {
+      console.warn("Quota hit, retrying with stagger...");
+      await staggerRequest(8000); // longer wait
+      return await safeGenerateImage(paragraphPrompt, paragraphIndex);
+    }
+  }
+}
+
+
+---
+
+5. Integration
+
+In videoGenerator.ts, update the loop:
+
+for (let i = 0; i < paragraphs.length; i++) {
+  const paragraphPrompt = buildParagraphPrompt(paragraphs[i]);
+  await safeGenerateImage(paragraphPrompt, i);
+}
+
+Each call:
+
+Rotates API key
+
+Sends 1 Gemini request for the entire paragraph (not each line)
+
+Waits staggered delay before the next request
+
+Splits image into 4 frames
+
+
+
+
+---
+
+6. Dependencies
+
+Ensure the following packages are installed:
+
+npm install @google/genai sharp
+
+Remove any unused Canvas or procedural drawing logic since Gemini handles all image generation.
+
+
+---
+
+✅ Expected Behavior
+
+Each paragraph uses a different Gemini key automatically.
+
+Each paragraph produces a single 4-panel image.
+
+That image is split into 4 frames for video assembly.
+
+Requests are automatically staggered with adaptive backoff.
+
+The app now scales to generate countless videos without triggering Gemini’s quota limits.
