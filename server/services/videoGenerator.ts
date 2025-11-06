@@ -19,6 +19,7 @@ export interface VideoGenerationResult {
 
 export async function generateVideo(
   script: string,
+  aspectRatio: string = "16:9",
   onProgress?: (progress: GenerationProgress) => void
 ): Promise<VideoGenerationResult> {
   // Reset frame counter for consistent frame numbering
@@ -122,7 +123,7 @@ export async function generateVideo(
 
   const timestamp = Date.now();
   const outputPath = path.join(outputDir, `video_${timestamp}.mp4`);
-  await createVideo(frames, audioPath, outputPath);
+  await createVideo(frames, audioPath, outputPath, aspectRatio);
 
   onProgress?.({
     stage: "video",

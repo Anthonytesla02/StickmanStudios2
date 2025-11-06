@@ -18,11 +18,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const data = JSON.parse(message.toString());
 
         if (data.type === "generate") {
-          const { script } = data;
+          const { script, aspectRatio = "16:9" } = data;
 
           // Generate video with progress updates
           try {
-            const result = await generateVideo(script, (progress) => {
+            const result = await generateVideo(script, aspectRatio, (progress) => {
               ws.send(JSON.stringify({ type: "progress", data: progress }));
             });
 
@@ -49,13 +49,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // REST API endpoint for video generation (alternative to WebSocket)
   app.post("/api/generate-video", async (req, res) => {
     try {
-      const { script } = req.body;
+      const { script, aspectRatio = "16:9" } = req.body;
 
       if (!script || typeof script !== "string") {
         return res.status(400).json({ message: "Script is required" });
       }
 
-      const result = await generateVideo(script);
+      const result = await generateVideo(script, aspectRatio);
       res.json(result);
     } catch (error: any) {
       console.error("Video generation error:", error);

@@ -11,10 +11,22 @@ export interface VideoFrame {
   duration: number;
 }
 
+function getVideoDimensions(aspectRatio: string): { width: number; height: number } {
+  const aspectRatioMap: Record<string, { width: number; height: number }> = {
+    "16:9": { width: 1920, height: 1080 },
+    "9:16": { width: 1080, height: 1920 },
+    "1:1": { width: 1080, height: 1080 },
+    "4:3": { width: 1440, height: 1080 },
+  };
+  
+  return aspectRatioMap[aspectRatio] || aspectRatioMap["16:9"];
+}
+
 export async function createVideo(
   frames: VideoFrame[],
   audioPath: string,
-  outputPath: string
+  outputPath: string,
+  aspectRatio: string = "16:9"
 ): Promise<void> {
   // Create a temporary directory for processing
   const tempDir = path.join(process.cwd(), "temp_video");
@@ -30,6 +42,8 @@ export async function createVideo(
   
   await writeFile(concatFilePath, concatContent);
 
+  const { width, height } = getVideoDimensions(aspectRatio);
+  
   try {
     // First, create video from images
     const videoOnlyPath = path.join(tempDir, "video_only.mp4");
@@ -38,7 +52,7 @@ export async function createVideo(
       "-f", "concat",
       "-safe", "0",
       "-i", concatFilePath,
-      "-vf", "fps=25,scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:-1:-1:color=white",
+      "-vf", `fps=25,scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:-1:-1:color=white`,
       "-c:v", "libx264",
       "-pix_fmt", "yuv420p",
       videoOnlyPath,

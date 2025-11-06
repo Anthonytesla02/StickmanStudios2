@@ -27,8 +27,8 @@ export default function Creator() {
   const wsRef = useRef<WebSocket | null>(null);
   const { toast } = useToast();
 
-  const handleGenerate = (script: string) => {
-    console.log('Starting generation with script:', script);
+  const handleGenerate = (script: string, aspectRatio: string) => {
+    console.log('Starting generation with script:', script, 'aspect ratio:', aspectRatio);
     setIsGenerating(true);
     setVideoReady(false);
     setVideoUrl("");
@@ -48,7 +48,7 @@ export default function Creator() {
 
     ws.onopen = () => {
       console.log("WebSocket connected");
-      ws.send(JSON.stringify({ type: "generate", script }));
+      ws.send(JSON.stringify({ type: "generate", script, aspectRatio }));
     };
 
     ws.onmessage = (event) => {
