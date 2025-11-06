@@ -106,7 +106,7 @@ Preferred communication style: Simple, everyday language.
 
 **ElevenLabs Text-to-Speech**
 - Voice ID: `pNInz6obpgDQGcFmaJgB` (Adam voice)
-- Model: `eleven_monolingual_v1`
+- Model: `eleven_turbo_v2_5` (free tier compatible)
 - Purpose: Generates professional narration from script text
 - Requires `ELEVENLABS_API_KEY` environment variable
 - Returns MP3 audio buffers
