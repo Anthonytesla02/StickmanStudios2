@@ -46,11 +46,15 @@ Preferred communication style: Simple, everyday language.
 - Progress streaming during video generation (image generation, audio creation, video rendering stages)
 - Graceful fallback to REST API endpoint for video generation if needed
 
-**Video Generation Pipeline (Updated November 2025)**
-1. Script parsing: Split input into lines, then group into paragraphs of 4 lines each
+**Video Generation Pipeline (Updated November 6, 2025)**
+1. Script parsing: Split input into lines, then group into paragraphs of exactly 4 lines each
+   - Paragraphs with fewer than 4 lines are padded by repeating the last line to ensure consistent 4-panel layout
+   - This prevents cropping issues during image splitting
 2. Image generation: 
    - Multi-key rotation system cycles through 4 Gemini API keys to avoid quota limits
-   - Generate one 4-panel horizontal comic strip per paragraph
+   - Generate one 4-panel horizontal comic strip per paragraph with enhanced visual storytelling
+   - AI prompt emphasizes showing actions visually through stickman poses and gestures, not text captions
+   - Minimal text policy: only 1-3 words for key labels, no full sentence captions
    - Automatically split 4-panel images into individual frames using Sharp
    - Staggered request timing (3s base + random jitter) to avoid rate limits
    - Adaptive retry with up to N attempts (where N = number of API keys)
