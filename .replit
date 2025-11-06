@@ -1,9 +1,10 @@
 run = "npm run dev"
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "web"]
 
 [deployment]
-run = "npm run start"
-build = "npm run build"
+run = ["npm", "run", "start"]
+build = ["npm", "run", "build"]
+deploymentTarget = "autoscale"
 
 [nix]
 channel = "stable-25_05"
@@ -24,21 +25,17 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
 
-[workflows.workflow.metadata]
-outputType = "webview"
-
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 38241
-externalPort = 3000
 
 [[ports]]
 localPort = 38331
