@@ -45,11 +45,22 @@ export async function generateVideo(
     throw new Error("Script is empty");
   }
 
-  // Group script lines into paragraphs of 4 lines each
+  // Group script lines into paragraphs of exactly 4 lines each
+  // If the last group has fewer than 4 lines, pad it with the last line repeated
   const paragraphs: string[][] = [];
   for (let i = 0; i < scriptLines.length; i += 4) {
     const paragraph = scriptLines.slice(i, i + 4);
-    paragraphs.push(paragraph);
+    
+    // Ensure every paragraph has exactly 4 lines to prevent cropping issues
+    while (paragraph.length < 4 && paragraph.length > 0) {
+      // Pad with the last line to maintain 4-panel structure
+      paragraph.push(paragraph[paragraph.length - 1]);
+    }
+    
+    // Only add paragraphs that have content
+    if (paragraph.length === 4) {
+      paragraphs.push(paragraph);
+    }
   }
 
   // Stage 1: Generate images (one 4-panel image per paragraph)

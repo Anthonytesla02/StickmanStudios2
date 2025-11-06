@@ -86,20 +86,25 @@ export async function generateStickmanImage(
 
   const imagePrompt = `Create a single high-quality stickman comic strip with ${panelCount} panels arranged horizontally in a single row.
 
+CRITICAL: Each panel MUST visually illustrate the action/concept - DO NOT just draw a stickman with the sentence written below it. Show what's happening through the stickman's pose, gestures, and minimal visual elements.
+
 Each panel should visualize the following ${panelCount} sentences in order:
 ${numberedLines}
 
 Style requirements:
-- ${panelCount} panels in a single horizontal row
-- White or light background
-- Minimalist, thin black outlines
-- Simple stickman figure (circle head, stick body, arms, legs) in each panel
-- Subtle colors only for key elements (e.g., brown/blue/green for context)
-- Label each panel clearly with subtle numbers "1", "2", "3", "4" in the corner
-- NO long captions or bottom text blocks
-- Style: educational infographic / simple comic strip
-- Professional and clean appearance
-- Each panel should be the same size and clearly separated`;
+- ${panelCount} equal-width panels in a single horizontal row (no gaps between panels)
+- Clean white or very light background
+- Minimalist style with thin black outlines
+- Simple stickman figure (circle head, stick body, arms, legs) performing the action described
+- Use subtle colors ONLY to highlight key elements mentioned in the text (e.g., brown/blue for eye color, objects in the scene)
+- Show the ACTION or CONCEPT visually through the stickman's pose, positioning, and simple props/elements
+- Label each panel with a small number "1", "2", "3", or "4" in the top corner
+- MINIMAL TEXT: Only use 1-3 words if absolutely necessary to clarify a key detail (like a label). NO full sentence captions at the bottom
+- Each panel must be exactly the same width and height
+- Clean separation between panels (use subtle vertical lines if needed)
+- Professional educational comic style
+
+REMEMBER: SHOW the action visually, don't just write the sentence below a standing stickman!`;
 
   try {
     const response = await genAI.models.generateContent({
