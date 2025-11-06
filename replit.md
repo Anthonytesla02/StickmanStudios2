@@ -32,7 +32,7 @@ Preferred communication style: Simple, everyday language.
 
 **Key Pages**
 - Home: Marketing landing page with hero, features, how-it-works, and pricing sections
-- Creator: Interactive video generation interface with script editor, progress panel, and video preview
+- Creator: Interactive video generation interface with script editor (includes aspect ratio selector), progress panel, and video preview
 
 ### Backend Architecture
 
@@ -120,8 +120,14 @@ Preferred communication style: Simple, everyday language.
 **FFmpeg**
 - Used via child_process execFile for video assembly
 - Operations: image concatenation, audio mixing, format conversion
-- Output: 1280x720 MP4 videos at 25fps with yuv420p pixel format
+- Output: MP4 videos at 25fps with yuv420p pixel format
+- Supports multiple aspect ratios:
+  - 16:9 (Landscape): 1920x1080
+  - 9:16 (Portrait): 1080x1920
+  - 1:1 (Square): 1080x1080
+  - 4:3 (Classic): 1440x1080
 - Handles frame duration timing and audio synchronization
+- Defaults to 16:9 if invalid aspect ratio provided
 
 **Sharp**
 - High-performance image processing library
